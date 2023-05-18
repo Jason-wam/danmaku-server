@@ -49,4 +49,5 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
     implementation("com.h2database:h2:$h2_version")
     implementation("org.json:json:20220320")
+    implementation("com.google.zxing:javase:3.4.1")
 }

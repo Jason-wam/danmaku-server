@@ -2,13 +2,14 @@ package com.jason.database
 
 import com.jason.database.DatabaseFactory.dbQuery
 import com.jason.model.DanmakuEntity
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
 
 class DanmakuDaoImpl : DanmakuDao {
+    override suspend fun count(): Long = dbQuery {
+        Danmakus.selectAll().count()
+    }
+
     override suspend fun delete(id: Int): Boolean = dbQuery {
         Danmakus.deleteWhere {
             Danmakus.id eq id
@@ -37,21 +38,30 @@ class DanmakuDaoImpl : DanmakuDao {
         }
     }
 
-    override suspend fun addDanmaku(parent: String, time: Long, type: Int, text: String, color: String): Boolean = dbQuery {
+    override suspend fun addDanmaku(
+        parent: String,
+        time: Long,
+        type: Int,
+        text: String,
+        size: Int,
+        color: String
+    ): Boolean = dbQuery {
         Danmakus.insert {
             it[Danmakus.text] = text
             it[Danmakus.time] = time
             it[Danmakus.type] = type
+            it[Danmakus.size] = size
             it[Danmakus.color] = color
             it[Danmakus.parent] = parent
         }.resultedValues.orEmpty().isNotEmpty()
     }
 
     private fun ResultRow.resultRowToDanmaku() = DanmakuEntity(
-            id = this[Danmakus.id],
-            text = this[Danmakus.text],
-            time = this[Danmakus.time],
-            color = this[Danmakus.color],
-            type = this[Danmakus.type],
+        id = this[Danmakus.id],
+        text = this[Danmakus.text],
+        size = this[Danmakus.size],
+        time = this[Danmakus.time],
+        color = this[Danmakus.color],
+        type = this[Danmakus.type],
     )
 }
