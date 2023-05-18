@@ -10,6 +10,12 @@ class DanmakuDaoImpl : DanmakuDao {
         Danmakus.selectAll().count()
     }
 
+    override suspend fun count(parent: String): Long = dbQuery {
+        Danmakus.select {
+            Danmakus.parent eq parent
+        }.count()
+    }
+
     override suspend fun delete(id: Int): Boolean = dbQuery {
         Danmakus.deleteWhere {
             Danmakus.id eq id

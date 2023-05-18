@@ -20,6 +20,7 @@ import io.ktor.server.request.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -35,13 +36,19 @@ fun Application.configureRouting() {
         }
 
         get("/count") {
-            call.respondText(dao.count().toString())
+            val id = call.parameters["id"]
+            if (id.isNullOrBlank()) {
+                call.respondText(dao.count().toString())
+            } else {
+                call.respondText(dao.count(id).toString())
+            }
         }
 
         get("/danmaku") {
             val id = call.parameters["id"]
             val version = call.parameters["ver"] //预留参数
             if (id.isNullOrBlank()) {
+                LoggerFactory.getLogger("Danmaku").info("Get Danmaku , id = $id")
                 call.respond(StatusResponse(HttpStatusCode.BadRequest.value, "Id不能为空!"))
             } else {
                 call.respond(DanmakuResponse(HttpStatusCode.OK.value, loadDefaultDanmaku().apply {
@@ -75,13 +82,16 @@ fun Application.configureRouting() {
                     call.respond(StatusResponse(HttpStatusCode.BadRequest.value, "弹幕时间不得小于0!"))
                     return@post
                 }
+                LoggerFactory.getLogger("Danmaku").info("Add Danmaku , id = $id, time = $time, text = $text")
                 if (dao.addDanmaku(id, time, type, text, size, color)) {
+                    LoggerFactory.getLogger("Danmaku").info("Add Danmaku succeed!")
                     call.respond(StatusResponse(HttpStatusCode.OK.value, "弹幕发送成功！"))
                 } else {
+                    LoggerFactory.getLogger("Danmaku").error("Add Danmaku failed!")
                     call.respond(StatusResponse(HttpStatusCode.InternalServerError.value, "弹幕发送失败！"))
                 }
             }.onFailure {
-                it.printStackTrace()
+                LoggerFactory.getLogger("Danmaku").error("Add Danmaku error:${it.stackTraceToString()}")
                 call.respond(StatusResponse(HttpStatusCode.InternalServerError.value, it.stackTraceToString()))
             }
         }
